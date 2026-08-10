@@ -45,17 +45,14 @@ p { margin: 0 0 16px; }
 .note { color: #4a4a4a; font-size: 14px; }
 
 .code {
-  border: 1px solid #d1d1d1;
-  padding: 20px;
   display: inline-block;
-  background: #fff;
-  margin: 12px 0 20px;
-  min-width: 240px;
-  min-height: 240px;
-  text-align: center;
+  margin: 16px 0 24px;
 }
 .code canvas, .code img { display: block; }
-.code .plain { font-size: 13px; color: #4a4a4a; word-break: break-all; text-align: left; }
+.code .plain {
+  font-size: 13px; color: #4a4a4a; word-break: break-all;
+  text-align: left; max-width: 240px;
+}
 
 ol { padding-left: 20px; margin: 0 0 24px; }
 li { margin-bottom: 6px; }
@@ -2485,8 +2482,10 @@ var qrcode = function() {
     qr.addData(url);
     qr.make();
     var count = qr.getModuleCount();
+    var QUIET = 4;                       // standard quiet zone, in modules
     var cell = Math.max(CELL_MIN, Math.floor(SIZE / count));
-    var dim = cell * count;
+    var off = QUIET * cell;
+    var dim = cell * count + off * 2;
     var canvas = document.createElement("canvas");
     canvas.width = canvas.height = dim;
     var ctx = canvas.getContext("2d");
@@ -2494,7 +2493,7 @@ var qrcode = function() {
     ctx.fillStyle = "#000";
     for (var r = 0; r < count; r++)
       for (var c = 0; c < count; c++)
-        if (qr.isDark(r, c)) ctx.fillRect(c * cell, r * cell, cell, cell);
+        if (qr.isDark(r, c)) ctx.fillRect(off + c * cell, off + r * cell, cell, cell);
     box.appendChild(canvas);
     box.setAttribute("role", "img");
     box.setAttribute("aria-label", "QR code for " + url);
@@ -2514,14 +2513,9 @@ var qrcode = function() {
   document.getElementById("download").addEventListener("click", function () {
     var canvas = box.querySelector("canvas");
     if (!canvas) { alert("There's no code to save yet — publish the page first."); return; }
-    var pad = 32, out = document.createElement("canvas");
-    out.width = out.height = canvas.width + pad * 2;
-    var ctx = out.getContext("2d");
-    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, out.width, out.height);
-    ctx.drawImage(canvas, pad, pad);
     var a = document.createElement("a");
     a.download = "authenticator-qr.png";
-    a.href = out.toDataURL("image/png");
+    a.href = canvas.toDataURL("image/png");
     a.click();
   });
 })();
